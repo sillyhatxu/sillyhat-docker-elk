@@ -1,0 +1,35 @@
+version: '3.4'
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.3.0
+    volumes:
+      - ./data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
+    environment:
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xmx512m -Xms512m"
+      - XX:ParallelGCThreads=N
+      - discovery.type=single-node
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.3.0
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.3.0
+    ports:
+      - 5000:5000
+    environment:
+      - DROP_NON_JSON=false
+      - STDOUT=true
+      - XX:ParallelGCThreads=N
+    volumes:
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    depends_on:
+      - elasticsearch
